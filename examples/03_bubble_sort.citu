@@ -1,0 +1,70 @@
+// ===================================================================
+// Program 3: Bubble Sort with In-Place Element Swapping in Citu
+// Demonstrates:
+// - Nested loops: jabtak (...) shro ... jabtak (...) shro ... khatam ... khatam
+// - Multiple condition expressions and relational operators (<, >, =)
+// - Array modification and temporary variable swapping using medalo
+// - Break optimization: early termination flag (swapped)
+// ===================================================================
+
+void bubble_sort(int32 arr[8], int32 n) shro
+    int32 i ;
+    int32 j ;
+    int32 temp ;
+    int32 swapped ;
+
+    i medalo 0 ;
+    jabtak ( i < ( n - 1 ) ) shro
+        swapped medalo 0 ;
+        j medalo 0 ;
+
+        jabtak ( j < ( n - i - 1 ) ) shro
+            agar ( arr[j] > arr[j + 1] ) shro
+                // Swap adjacent elements
+                temp medalo arr[j] ;
+                arr[j] medalo arr[j + 1] ;
+                arr[j + 1] medalo temp ;
+                swapped medalo 1 ;
+            magar
+                // Already in sorted relative order
+            khatam
+            j medalo ( j + 1 ) ;
+        khatam
+
+        // Optimization: if no two elements were swapped by inner loop, exit
+        agar ( swapped = 0 ) shro
+            nikal ;
+        magar
+            // Continue outer pass
+        khatam
+
+        i medalo ( i + 1 ) ;
+    khatam
+khatam
+
+int32 main() shro
+    int32 data[8] ;
+    int32 k ;
+
+    // Populate unordered array
+    data[0] medalo 64 ;
+    data[1] medalo 34 ;
+    data[2] medalo 25 ;
+    data[3] medalo 12 ;
+    data[4] medalo 22 ;
+    data[5] medalo 11 ;
+    data[6] medalo 90 ;
+    data[7] medalo 45 ;
+
+    dikhao("Original array initialized.") ;
+    bubble_sort(data, 8) ;
+    dikhao("Array sorted successfully.") ;
+
+    k medalo 0 ;
+    jabtak ( k < 8 ) shro
+        dikhao(data[k]) ;
+        k medalo ( k + 1 ) ;
+    khatam
+
+    wapis 0 ;
+khatam

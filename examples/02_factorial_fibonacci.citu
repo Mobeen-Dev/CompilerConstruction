@@ -1,0 +1,63 @@
+// ===================================================================
+// Program 2: Mathematical Computation & Series Accumulation in Citu
+// Demonstrates:
+// - Arithmetic operations: +, -, *, /, %
+// - Floating point & real data types: float, real
+// - Nested conditional branching: agar ... magar ... khatam
+// - Iterative accumulation with jabtak
+// - Return values and type conversion
+// ===================================================================
+
+int32 factorial(int32 n) shro
+    int32 result ;
+    int32 counter ;
+
+    agar ( n <= 1 ) shro
+        wapis 1 ;
+    magar
+        result medalo 1 ;
+        counter medalo n ;
+
+        jabtak ( counter > 1 ) shro
+            result medalo ( result * counter ) ;
+            counter medalo ( counter - 1 ) ;
+        khatam
+
+        wapis result ;
+    khatam
+khatam
+
+real calculate_series_sum(int32 terms) shro
+    int32 k ;
+    real sum ;
+    real term_val ;
+
+    sum medalo 0.0 ;
+    k medalo 1 ;
+
+    jabtak ( k <= terms ) shro
+        term_val medalo ( 1.0 / factorial(k) ) ;
+        sum medalo ( sum + term_val ) ;
+        k medalo ( k + 1 ) ;
+    khatam
+
+    wapis sum ;
+khatam
+
+int32 main() shro
+    int32 n ;
+    int32 fact ;
+    real approx_e ;
+
+    n medalo 5 ;
+    fact medalo factorial(n) ;
+
+    dikhao("Factorial of 5 is: ") ;
+    dikhao(fact) ;
+
+    approx_e medalo calculate_series_sum(n) ;
+    dikhao("Approximation series sum: ") ;
+    dikhao(approx_e) ;
+
+    wapis 0 ;
+khatam

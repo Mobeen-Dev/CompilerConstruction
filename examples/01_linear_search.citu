@@ -1,0 +1,57 @@
+// ===================================================================
+// Program 1: Linear Search and Element Processing in Citu
+// Demonstrates:
+// - Primitive types: int32, int16, uint16
+// - Fixed-size arrays and indexing: a[i]
+// - Loop construct: jabtak (condition) shro ... khatam
+// - Conditional construct with internal else: agar ... shro ... magar ... khatam
+// - Break / early loop exit: nikal ;
+// - Assignment keyword: medalo
+// - Function definition, parameter passing, and return: wapis
+// ===================================================================
+
+int32 linear_search(int32 arr[10], int32 size, int32 target) shro
+    int32 i ;
+    int32 found_index ;
+
+    i medalo 0 ;
+    found_index medalo -1 ;
+
+    jabtak ( i < size ) shro
+        agar ( arr[i] = target ) shro
+            found_index medalo i ;
+            nikal ;
+        magar
+            // Element does not match, continue search
+        khatam
+        i medalo ( i + 1 ) ;
+    khatam
+
+    wapis found_index ;
+khatam
+
+int32 main() shro
+    int32 numbers[10] ;
+    int32 target ;
+    int32 result ;
+    int32 idx ;
+
+    // Initialize array values
+    idx medalo 0 ;
+    jabtak ( idx < 10 ) shro
+        numbers[idx] medalo ( idx * 5 ) ;
+        idx medalo ( idx + 1 ) ;
+    khatam
+
+    target medalo 25 ;
+    result medalo linear_search(numbers, 10, target) ;
+
+    agar ( result != -1 ) shro
+        dikhao("Target element found at index: ") ;
+        dikhao(result) ;
+    magar
+        dikhao("Target element was not found in array.") ;
+    khatam
+
+    wapis 0 ;
+khatam
