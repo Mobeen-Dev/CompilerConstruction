@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Citu Language Specification & Compiler Design Document</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #24292e;
+    margin: 40px;
+}
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 24px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #1a1e22;
+}
+h1 { font-size: 24px; border-bottom: 2px solid #eaecef; padding-bottom: 8px; }
+h2 { font-size: 18px; border-bottom: 1px solid #eaecef; padding-bottom: 6px; margin-top: 32px; }
+h3 { font-size: 15px; margin-top: 20px; }
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+    font-size: 12px;
+}
+table th, table td {
+    padding: 7px 12px;
+    border: 1px solid #dfe2e5;
+}
+table th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+}
+table tr:nth-child(2n) {
+    background-color: #f8f9fa;
+}
+pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 12px;
+    overflow: auto;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    border: 1px solid #e1e4e8;
+    page-break-inside: avoid;
+}
+code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 11px;
+    background-color: rgba(27,31,35,0.05);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+@page {
+    size: A4;
+    margin: 1.5cm;
+}
+</style>
+</head>
+<body>
+<h1 id="citu-language-specification-compiler-design-document">Citu Language Specification &amp; Compiler Design Document</h1>
+<p><strong>Course:</strong> CS-310 / CS-410 Compiler Construction<br />
+<strong>Institution:</strong> Information Technology University (ITU) of the Punjab, Lahore<br />
+<strong>Instructor:</strong> Dr. Umar Suleman (<code>umarsuleman@gmail.com</code>)<br />
+<strong>Teaching Assistant:</strong> <code>mscs24052@itu.edu.pk</code><br />
+<strong>Student Name:</strong> Mobeen Qamar<br />
+<strong>Student ID:</strong> BSCS23050<br />
+<strong>Repository URL:</strong> <a href="https://github.com/Mobeen-Dev/CompilerConstruction.git">https://github.com/Mobeen-Dev/CompilerConstruction.git</a><br />
+<strong>Document Revision:</strong> 1.0 (Phase 1 Submission)  </p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-executive-summary--language-philosophy">Executive Summary &amp; Language Philosophy</a></li>
+<li><a href="#2-section-1-example-programs-3">Section 1: Example Programs (3)</a></li>
+<li><a href="#11-program-1-linear-search-and-element-processing">1.1 Program 1: Linear Search and Element Processing</a></li>
+<li><a href="#12-program-2-mathematical-series--factorial-computation">1.2 Program 2: Mathematical Series &amp; Factorial Computation</a></li>
+<li><a href="#13-program-3-bubble-sort-with-in-place-element-swapping">1.3 Program 3: Bubble Sort with In-Place Element Swapping</a></li>
+<li><a href="#14-citu-language-keyword--feature-mapping">1.4 Citu Language Keyword &amp; Feature Mapping</a></li>
+<li><a href="#3-section-2-citu-language-grammar">Section 2: Citu Language Grammar</a></li>
+<li><a href="#21-lexical-rules--token-specification">2.1 Lexical Rules &amp; Token Specification</a></li>
+<li><a href="#22-flex--lex-regular-expression-definitions">2.2 Flex / Lex Regular Expression Definitions</a></li>
+<li><a href="#23-context-free-grammar-cfg-in-ebnf">2.3 Context-Free Grammar (CFG) in EBNF</a></li>
+<li><a href="#24-grammar-properties-precedence--ambiguity-resolution">2.4 Grammar Properties, Precedence, &amp; Ambiguity Resolution</a></li>
+<li><a href="#4-section-3-compiler-data-structures">Section 3: Compiler Data Structures</a></li>
+<li><a href="#31-token-and-lexical-stream-data-structures">3.1 Token and Lexical Stream Data Structures</a></li>
+<li><a href="#32-scoped-symbol-table-architecture">3.2 Scoped Symbol Table Architecture</a></li>
+<li><a href="#33-abstract-syntax-tree-ast-data-structures">3.3 Abstract Syntax Tree (AST) Data Structures</a></li>
+<li><a href="#34-ast-visual-hierarchy">3.4 AST Visual Hierarchy</a></li>
+<li><a href="#35-diagnostic--error-reporting-structures">3.5 Diagnostic &amp; Error Reporting Structures</a></li>
+<li><a href="#5-section-4-intermediate-file-formats">Section 4: Intermediate File Formats</a></li>
+<li><a href="#41-compiler-component-pipeline-overview">4.1 Compiler Component Pipeline Overview</a></li>
+<li><a href="#42-lexer-output-format-token-stream-tok">4.2 Lexer Output Format: Token Stream (.tok)</a></li>
+<li><a href="#43-parser-output-format-abstract-syntax-tree-ast">4.3 Parser Output Format: Abstract Syntax Tree (.ast)</a></li>
+<li><a href="#44-semantic-analyzer-output-symbol-table-dump-sym">4.4 Semantic Analyzer Output: Symbol Table Dump (.sym)</a></li>
+<li><a href="#45-intermediate-representation-ir-three-address-code-tac">4.5 Intermediate Representation (IR): Three-Address Code (.tac)</a></li>
+<li><a href="#46-code-generation-output-assembly-file-asm">4.6 Code Generation Output: Assembly File (.asm)</a></li>
+<li><a href="#6-section-5-git-repository--submission-details">Section 5: Git Repository &amp; Submission Details</a></li>
+<li><a href="#51-student-id--repository-metadata">5.1 Student ID &amp; Repository Metadata</a></li>
+<li><a href="#52-repository-access--collaborator-setup">5.2 Repository Access &amp; Collaborator Setup</a></li>
+<li><a href="#53-commit-verification--submission-text">5.3 Commit Verification &amp; Submission Text</a></li>
+</ol>
+<hr />
+<h2 id="1-executive-summary-language-philosophy">1. Executive Summary &amp; Language Philosophy</h2>
+<p><strong>Citu</strong> is a strongly typed, block-structured procedural programming language created as part of the Compiler Construction course at the Information Technology University (ITU). The primary design innovation of Citu is the harmonization of low-level and systems-level type precision (e.g., <code>int16</code>, <code>int32</code>, <code>uint16</code>, <code>uint32</code>, <code>real</code>, <code>float</code>) with highly intuitive, conversational Romanized Urdu keywords for control flow, block scoping, and assignments.</p>
+<p>Key distinguishing attributes of the Citu language:
+1. <strong>Conversational Block Delimiters:</strong> Traditional C curly braces (<code>{</code> and <code>}</code>) are replaced with intuitive Urdu block markers: <code>shro</code> (start / begin) and <code>khatam</code> (finish / end).
+2. <strong>Distinctive Selection Semantics:</strong> In Citu, the <code>else</code> clause (<code>magar</code>) is strictly scoped within its owning <code>agar</code> block. The entire conditional construct begins with <code>agar (condition) shro</code> and concludes with <code>khatam</code>, completely eliminating the classic "dangling-else" ambiguity found in C/Java.
+3. <strong>Keyword-Explicit Assignment:</strong> Assignment is explicitly denoted by <code>medalo</code> (literally <em>“put in / insert”</em>), written as <code>&lt;destination&gt; medalo &lt;expression&gt; ;</code>. This frees <code>=</code> to serve unambiguously as an equality comparison operator alongside <code>==</code>.
+4. <strong>Intuitive Loop and Loop Controls:</strong> Iteration is driven by <code>jabtak (condition) shro ... khatam</code> (literally <em>“as long as / until”</em>), and loop interruption / break is performed via <code>nikal ;</code> (literally <em>“get out / leave”</em>).
+5. <strong>System-Oriented Data Types:</strong> Native support for exact-width integers (<code>int16</code>, <code>int32</code>, <code>uint16</code>, <code>uint32</code>), single-precision and high-precision floating points (<code>float</code>, <code>real</code>), characters (<code>char</code>), and fixed-size arrays.</p>
+<hr />
+<h2 id="2-section-1-example-programs-3">2. Section 1: Example Programs (3)</h2>
+<p>Three complete, non-trivial sample programs have been developed to exercise and demonstrate the complete spectrum of Citu syntax and compiler features.</p>
+<h3 id="11-program-1-linear-search-and-element-processing">1.1 Program 1: Linear Search and Element Processing</h3>
+<p><strong>File Location:</strong> <code>examples/01_linear_search.citu</code></p>
+<p>This program demonstrates:
+- Global scalar and fixed-size array declarations.
+- Loop iteration using <code>jabtak</code>.
+- Conditionals using <code>agar</code>, <code>magar</code>, and <code>khatam</code>.
+- Loop termination via <code>nikal ;</code>.
+- Assignment statements using <code>medalo</code>.
+- Modular function definitions and function calls returning <code>int32</code>.</p>
+<pre><code class="language-citu">// ===================================================================
+// Program 1: Linear Search and Element Processing in Citu
+// Demonstrates:
+// - Primitive types: int32, int16, uint16
+// - Fixed-size arrays and indexing: a[i]
+// - Loop construct: jabtak (condition) shro ... khatam
+// - Conditional construct with internal else: agar ... shro ... magar ... khatam
+// - Break / early loop exit: nikal ;
+// - Assignment keyword: medalo
+// - Function definition, parameter passing, and return: wapis
+// ===================================================================
+
+int32 linear_search(int32 arr[10], int32 size, int32 target) shro
+    int32 i ;
+    int32 found_index ;
+
+    i medalo 0 ;
+    found_index medalo -1 ;
+
+    jabtak ( i &lt; size ) shro
+        agar ( arr[i] = target ) shro
+            found_index medalo i ;
+            nikal ;
+        magar
+            // Element does not match, continue search
+        khatam
+        i medalo ( i + 1 ) ;
+    khatam
+
+    wapis found_index ;
+khatam
+
+int32 main() shro
+    int32 numbers[10] ;
+    int32 target ;
+    int32 result ;
+    int32 idx ;
+
+    // Initialize array values
+    idx medalo 0 ;
+    jabtak ( idx &lt; 10 ) shro
+        numbers[idx] medalo ( idx * 5 ) ;
+        idx medalo ( idx + 1 ) ;
+    khatam
+
+    target medalo 25 ;
+    result medalo linear_search(numbers, 10, target) ;
+
+    agar ( result != -1 ) shro
+        dikhao(&quot;Target element found at index: &quot;) ;
+        dikhao(result) ;
+    magar
+        dikhao(&quot;Target element was not found in array.&quot;) ;
+    khatam
+
+    wapis 0 ;
+khatam
+</code></pre>
+<hr />
+<h3 id="12-program-2-mathematical-series-factorial-computation">1.2 Program 2: Mathematical Series &amp; Factorial Computation</h3>
+<p><strong>File Location:</strong> <code>examples/02_factorial_fibonacci.citu</code></p>
+<p>This program demonstrates:
+- Multiple numerical data types: <code>int32</code>, <code>float</code>, and <code>real</code> (double precision).
+- Compound arithmetic operations with operator precedence: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>.
+- Iterative accumulation with early termination checks.
+- Floating-point calculations and Taylor series approximation of $e \approx \sum \frac{1}{k!}$.</p>
+<pre><code class="language-citu">// ===================================================================
+// Program 2: Mathematical Computation &amp; Series Accumulation in Citu
+// Demonstrates:
+// - Arithmetic operations: +, -, *, /, %
+// - Floating point &amp; real data types: float, real
+// - Nested conditional branching: agar ... magar ... khatam
+// - Iterative accumulation with jabtak
+// - Return values and type conversion
+// ===================================================================
+
+int32 factorial(int32 n) shro
+    int32 result ;
+    int32 counter ;
+
+    agar ( n &lt;= 1 ) shro
+        wapis 1 ;
+    magar
+        result medalo 1 ;
+        counter medalo n ;
+
+        jabtak ( counter &gt; 1 ) shro
+            result medalo ( result * counter ) ;
+            counter medalo ( counter - 1 ) ;
+        khatam
+
+        wapis result ;
+    khatam
+khatam
+
+real calculate_series_sum(int32 terms) shro
+    int32 k ;
+    real sum ;
+    real term_val ;
+
+    sum medalo 0.0 ;
+    k medalo 1 ;
+
+    jabtak ( k &lt;= terms ) shro
+        term_val medalo ( 1.0 / factorial(k) ) ;
+        sum medalo ( sum + term_val ) ;
+        k medalo ( k + 1 ) ;
+    khatam
+
+    wapis sum ;
+khatam
+
+int32 main() shro
+    int32 n ;
+    int32 fact ;
+    real approx_e ;
+
+    n medalo 5 ;
+    fact medalo factorial(n) ;
+
+    dikhao(&quot;Factorial of 5 is: &quot;) ;
+    dikhao(fact) ;
+
+    approx_e medalo calculate_series_sum(n) ;
+    dikhao(&quot;Approximation series sum: &quot;) ;
+    dikhao(approx_e) ;
+
+    wapis 0 ;
+khatam
+</code></pre>
+<hr />
+<h3 id="13-program-3-bubble-sort-with-in-place-element-swapping">1.3 Program 3: Bubble Sort with In-Place Element Swapping</h3>
+<p><strong>File Location:</strong> <code>examples/03_bubble_sort.citu</code></p>
+<p>This program demonstrates:
+- Nested <code>jabtak</code> loops (2D iteration).
+- In-place array swapping logic with temporary variables.
+- Dynamic boolean early-exit flag (<code>swapped = 0</code>).
+- Relational operators: <code>&gt;</code>, <code>&lt;</code>, <code>=</code>, <code>!=</code>.
+- Void function signatures: <code>void bubble_sort(...)</code>.</p>
+<pre><code class="language-citu">// ===================================================================
+// Program 3: Bubble Sort with In-Place Element Swapping in Citu
+// Demonstrates:
+// - Nested loops: jabtak (...) shro ... jabtak (...) shro ... khatam ... khatam
+// - Multiple condition expressions and relational operators (&lt;, &gt;, =)
+// - Array modification and temporary variable swapping using medalo
+// - Break optimization: early termination flag (swapped)
+// ===================================================================
+
+void bubble_sort(int32 arr[8], int32 n) shro
+    int32 i ;
+    int32 j ;
+    int32 temp ;
+    int32 swapped ;
+
+    i medalo 0 ;
+    jabtak ( i &lt; ( n - 1 ) ) shro
+        swapped medalo 0 ;
+        j medalo 0 ;
+
+        jabtak ( j &lt; ( n - i - 1 ) ) shro
+            agar ( arr[j] &gt; arr[j + 1] ) shro
+                // Swap adjacent elements
+                temp medalo arr[j] ;
+                arr[j] medalo arr[j + 1] ;
+                arr[j + 1] medalo temp ;
+                swapped medalo 1 ;
+            magar
+                // Already in sorted relative order
+            khatam
+            j medalo ( j + 1 ) ;
+        khatam
+
+        // Optimization: if no two elements were swapped by inner loop, exit
+        agar ( swapped = 0 ) shro
+            nikal ;
+        magar
+            // Continue outer pass
+        khatam
+
+        i medalo ( i + 1 ) ;
+    khatam
+khatam
+
+int32 main() shro
+    int32 data[8] ;
+    int32 k ;
+
+    // Populate unordered array
+    data[0] medalo 64 ;
+    data[1] medalo 34 ;
+    data[2] medalo 25 ;
+    data[3] medalo 12 ;
+    data[4] medalo 22 ;
+    data[5] medalo 11 ;
+    data[6] medalo 90 ;
+    data[7] medalo 45 ;
+
+    dikhao(&quot;Original array initialized.&quot;) ;
+    bubble_sort(data, 8) ;
+    dikhao(&quot;Array sorted successfully.&quot;) ;
+
+    k medalo 0 ;
+    jabtak ( k &lt; 8 ) shro
+        dikhao(data[k]) ;
+        k medalo ( k + 1 ) ;
+    khatam
+
+    wapis 0 ;
+khatam
+</code></pre>
+<hr />
+<h3 id="14-citu-language-keyword-feature-mapping">1.4 Citu Language Keyword &amp; Feature Mapping</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Citu Keyword / Operator</th>
+<th style="text-align: left;">English Meaning / Origin</th>
+<th style="text-align: left;">C/C++ Equivalent</th>
+<th style="text-align: left;">Language Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>jabtak</code></td>
+<td style="text-align: left;"><em>As long as / Until</em></td>
+<td style="text-align: left;"><code>while</code></td>
+<td style="text-align: left;">Iteration loop construct</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>shro</code></td>
+<td style="text-align: left;"><em>Start / Begin</em> (<code>shuru</code>)</td>
+<td style="text-align: left;"><code>{</code> or <code>begin</code></td>
+<td style="text-align: left;">Opens a block of statements</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>khatam</code></td>
+<td style="text-align: left;"><em>Finished / End</em></td>
+<td style="text-align: left;"><code>}</code> or <code>end</code></td>
+<td style="text-align: left;">Closes an opened block</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>agar</code></td>
+<td style="text-align: left;"><em>If</em></td>
+<td style="text-align: left;"><code>if</code></td>
+<td style="text-align: left;">Conditional branch opener</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>magar</code></td>
+<td style="text-align: left;"><em>Else / But</em></td>
+<td style="text-align: left;"><code>else</code></td>
+<td style="text-align: left;">Alternative branch inside <code>agar</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nikal</code></td>
+<td style="text-align: left;"><em>Get out / Exit</em></td>
+<td style="text-align: left;"><code>break;</code> / <code>exit()</code></td>
+<td style="text-align: left;">Terminates immediate loop</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>medalo</code></td>
+<td style="text-align: left;"><em>Insert / Put in</em></td>
+<td style="text-align: left;"><code>=</code></td>
+<td style="text-align: left;">Assignment operator</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wapis</code></td>
+<td style="text-align: left;"><em>Return / Back</em></td>
+<td style="text-align: left;"><code>return</code></td>
+<td style="text-align: left;">Returns value from subroutine</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dikhao</code></td>
+<td style="text-align: left;"><em>Show / Display</em></td>
+<td style="text-align: left;"><code>printf</code> / <code>cout</code></td>
+<td style="text-align: left;">Standard output statement</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>parho</code></td>
+<td style="text-align: left;"><em>Read</em></td>
+<td style="text-align: left;"><code>scanf</code> / <code>cin</code></td>
+<td style="text-align: left;">Standard input statement</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>=</code> or <code>==</code></td>
+<td style="text-align: left;"><em>Equal to</em></td>
+<td style="text-align: left;"><code>==</code></td>
+<td style="text-align: left;">Relational equality test</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>int16</code>, <code>int32</code></td>
+<td style="text-align: left;">16/32-bit signed int</td>
+<td style="text-align: left;"><code>short</code>, <code>int</code></td>
+<td style="text-align: left;">Primitive integer types</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>uint16</code>, <code>uint32</code></td>
+<td style="text-align: left;">16/32-bit unsigned int</td>
+<td style="text-align: left;"><code>uint16_t</code>, <code>uint32_t</code></td>
+<td style="text-align: left;">Primitive unsigned types</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>float</code>, <code>real</code></td>
+<td style="text-align: left;">Floating-point</td>
+<td style="text-align: left;"><code>float</code>, <code>double</code></td>
+<td style="text-align: left;">Single &amp; double precision floats</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>char</code></td>
+<td style="text-align: left;">8-bit ASCII character</td>
+<td style="text-align: left;"><code>char</code></td>
+<td style="text-align: left;">Byte character type</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Empty / No return</td>
+<td style="text-align: left;"><code>void</code></td>
+<td style="text-align: left;">Subroutine without return value</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-section-2-citu-language-grammar">3. Section 2: Citu Language Grammar</h2>
+<h3 id="21-lexical-rules-token-specification">2.1 Lexical Rules &amp; Token Specification</h3>
+<p>The Lexical Analyzer reads a raw Citu source stream, eliminates whitespace and comments, and converts characters into tokens characterized by <code>(TokenType, Lexeme, LineNumber, ColumnNumber)</code>.</p>
+<h4 id="1-keywords">1. Keywords</h4>
+<ul>
+<li><strong>Control Flow:</strong> <code>jabtak</code>, <code>shro</code>, <code>khatam</code>, <code>agar</code>, <code>magar</code>, <code>nikal</code>, <code>wapis</code></li>
+<li><strong>Assignment:</strong> <code>medalo</code></li>
+<li><strong>I/O Operations:</strong> <code>dikhao</code>, <code>parho</code></li>
+<li><strong>Data Types:</strong> <code>int16</code>, <code>int32</code>, <code>uint16</code>, <code>uint32</code>, <code>real</code>, <code>float</code>, <code>char</code>, <code>void</code></li>
+</ul>
+<h4 id="2-identifiers">2. Identifiers</h4>
+<p>An identifier represents a variable name, function name, or array name.
+$$\text{Identifier} \leftarrow [a\text{-}zA\text{-}Z_][a\text{-}zA\text{-}Z0\text{-}9_]^*$$</p>
+<h4 id="3-literals">3. Literals</h4>
+<ul>
+<li><strong>Integer Constants:</strong> Decimal sequences <code>[0-9]+</code> or Hexadecimal <code>0[xX][0-9a-fA-F]+</code></li>
+<li><strong>Real Constants:</strong> Floating-point representations <code>[0-9]+\.[0-9]+([eE][+-]?[0-9]+)?</code></li>
+<li><strong>Character Literals:</strong> Single ASCII characters enclosed in single quotes <code>'([^'\\\n]|(\\.))'</code></li>
+<li><strong>String Literals:</strong> Character sequences enclosed in double quotes <code>"([^"\\\n]|(\\.))*"</code></li>
+</ul>
+<h4 id="4-operators">4. Operators</h4>
+<ul>
+<li><strong>Assignment:</strong> <code>medalo</code></li>
+<li><strong>Arithmetic:</strong> <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></li>
+<li><strong>Relational:</strong> <code>=</code>, <code>==</code> (Equality), <code>!=</code> (Inequality), <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></li>
+<li><strong>Logical:</strong> <code>&amp;&amp;</code> (or <code>aur</code>), <code>||</code> (or <code>ya</code>), <code>!</code> (or <code>na</code>)</li>
+</ul>
+<h4 id="5-delimiters-and-separators">5. Delimiters and Separators</h4>
+<ul>
+<li>Parentheses: <code>(</code>, <code>)</code></li>
+<li>Square Brackets: <code>[</code>, <code>]</code></li>
+<li>Semicolon: <code>;</code></li>
+<li>Comma: <code>,</code></li>
+</ul>
+<h4 id="6-comments-and-whitespace">6. Comments and Whitespace</h4>
+<ul>
+<li>Single-line comments: <code>//[^\n]*</code> (discarded)</li>
+<li>Multi-line comments: <code>/\*([^*]|\*+[^/*])*\*+/</code> (discarded)</li>
+<li>Whitespace: <code>[ \t\r\n]+</code> (discarded, advances line/column tracker)</li>
+</ul>
+<hr />
+<h3 id="22-flex-lex-regular-expression-definitions">2.2 Flex / Lex Regular Expression Definitions</h3>
+<p>Below is the production-grade Flex lexical definition for the Citu language:</p>
+<pre><code class="language-lex">%{
+#include &quot;citu_parser.hpp&quot;
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+
+int line_num = 1;
+int col_num = 1;
+
+void advance_col(const char* text) {
+    for (int i = 0; text[i] != '\0'; i++) {
+        if (text[i] == '\n') {
+            line_num++;
+            col_num = 1;
+        } else {
+            col_num++;
+        }
+    }
+}
+%}
+
+%option noyywrap
+
+DIGIT       [0-9]
+HEX_DIGIT   [0-9a-fA-F]
+LETTER      [a-zA-Z_]
+ID          {LETTER}({LETTER}|{DIGIT})*
+INT_CONST   {DIGIT}+
+HEX_CONST   0[xX]{HEX_DIGIT}+
+FLOAT_CONST {DIGIT}+\.{DIGIT}+([eE][+-]?{DIGIT}+)?
+STRING      \&quot;([^\&quot;\\]|\\.)*\&quot;
+CHAR        \'([^\'\\]|\\.)\'
+WS          [ \t\r]+
+NEWLINE     \n
+
+%%
+
+&quot;jabtak&quot;        { advance_col(yytext); return TOKEN_JABTAK; }
+&quot;shro&quot;          { advance_col(yytext); return TOKEN_SHRO; }
+&quot;khatam&quot;        { advance_col(yytext); return TOKEN_KHATAM; }
+&quot;agar&quot;          { advance_col(yytext); return TOKEN_AGAR; }
+&quot;magar&quot;         { advance_col(yytext); return TOKEN_MAGAR; }
+&quot;nikal&quot;         { advance_col(yytext); return TOKEN_NIKAL; }
+&quot;medalo&quot;        { advance_col(yytext); return TOKEN_MEDALO; }
+&quot;wapis&quot;         { advance_col(yytext); return TOKEN_WAPIS; }
+&quot;dikhao&quot;        { advance_col(yytext); return TOKEN_DIKHAO; }
+&quot;parho&quot;         { advance_col(yytext); return TOKEN_PARHO; }
+
+&quot;int16&quot;         { advance_col(yytext); return TOKEN_INT16; }
+&quot;int32&quot;         { advance_col(yytext); return TOKEN_INT32; }
+&quot;uint16&quot;        { advance_col(yytext); return TOKEN_UINT16; }
+&quot;uint32&quot;        { advance_col(yytext); return TOKEN_UINT32; }
+&quot;real&quot;          { advance_col(yytext); return TOKEN_REAL; }
+&quot;float&quot;         { advance_col(yytext); return TOKEN_FLOAT; }
+&quot;char&quot;          { advance_col(yytext); return TOKEN_CHAR; }
+&quot;void&quot;          { advance_col(yytext); return TOKEN_VOID; }
+
+&quot;=&quot;             { advance_col(yytext); return TOKEN_EQ; }
+&quot;==&quot;            { advance_col(yytext); return TOKEN_EQ; }
+&quot;!=&quot;            { advance_col(yytext); return TOKEN_NEQ; }
+&quot;&lt;=&quot;            { advance_col(yytext); return TOKEN_LTE; }
+&quot;&gt;=&quot;            { advance_col(yytext); return TOKEN_GTE; }
+&quot;&lt;&quot;             { advance_col(yytext); return TOKEN_LT; }
+&quot;&gt;&quot;             { advance_col(yytext); return TOKEN_GT; }
+
+&quot;+&quot;             { advance_col(yytext); return TOKEN_PLUS; }
+&quot;-&quot;             { advance_col(yytext); return TOKEN_MINUS; }
+&quot;*&quot;             { advance_col(yytext); return TOKEN_STAR; }
+&quot;/&quot;             { advance_col(yytext); return TOKEN_SLASH; }
+&quot;%&quot;             { advance_col(yytext); return TOKEN_PERCENT; }
+
+&quot;&amp;&amp;&quot;            { advance_col(yytext); return TOKEN_AND; }
+&quot;||&quot;            { advance_col(yytext); return TOKEN_OR; }
+&quot;!&quot;             { advance_col(yytext); return TOKEN_NOT; }
+
+&quot;(&quot;             { advance_col(yytext); return TOKEN_LPAREN; }
+&quot;)&quot;             { advance_col(yytext); return TOKEN_RPAREN; }
+&quot;[&quot;             { advance_col(yytext); return TOKEN_LBRACKET; }
+&quot;]&quot;             { advance_col(yytext); return TOKEN_RBRACKET; }
+&quot;;&quot;             { advance_col(yytext); return TOKEN_SEMICOLON; }
+&quot;,&quot;             { advance_col(yytext); return TOKEN_COMMA; }
+
+{FLOAT_CONST}   { advance_col(yytext); yylval.fval = atof(yytext); return TOKEN_FLOAT_LITERAL; }
+{INT_CONST}     { advance_col(yytext); yylval.ival = atoi(yytext); return TOKEN_INT_LITERAL; }
+{HEX_CONST}     { advance_col(yytext); yylval.ival = (int)strtol(yytext, NULL, 16); return TOKEN_INT_LITERAL; }
+{CHAR}          { advance_col(yytext); yylval.cval = yytext[1]; return TOKEN_CHAR_LITERAL; }
+{STRING}        { advance_col(yytext); yylval.sval = strdup(yytext); return TOKEN_STRING_LITERAL; }
+{ID}            { advance_col(yytext); yylval.sval = strdup(yytext); return TOKEN_IDENTIFIER; }
+
+&quot;//&quot;[^\n]*      { advance_col(yytext); /* Ignore single-line comments */ }
+&quot;/*&quot;([^*]|\*+[^/*])*\*+&quot;/&quot; { advance_col(yytext); /* Ignore multi-line comments */ }
+
+{WS}            { advance_col(yytext); /* Skip spaces and tabs */ }
+{NEWLINE}       { line_num++; col_num = 1; /* Skip newline */ }
+
+.               { std::cerr &lt;&lt; &quot;Lexical Error at Line &quot; &lt;&lt; line_num &lt;&lt; &quot;, Col &quot; &lt;&lt; col_num &lt;&lt; &quot;: Unexpected character &quot; &lt;&lt; yytext &lt;&lt; std::endl; }
+
+%%
+</code></pre>
+<hr />
+<h3 id="23-context-free-grammar-cfg-in-ebnf">2.3 Context-Free Grammar (CFG) in EBNF</h3>
+<p>The complete syntax of Citu is formalized below using Extended Backus-Naur Form (EBNF):</p>
+<pre><code class="language-ebnf">(* ================= Citu Language Syntax Specification ================= *)
+
+Program
+    ::= DeclarationList
+
+DeclarationList
+    ::= Declaration DeclarationList
+      | ε
+
+Declaration
+    ::= VarDeclaration
+      | FuncDeclaration
+
+(* Type Specifiers *)
+TypeSpecifier
+    ::= &quot;int16&quot;
+      | &quot;int32&quot;
+      | &quot;uint16&quot;
+      | &quot;uint32&quot;
+      | &quot;real&quot;
+      | &quot;float&quot;
+      | &quot;char&quot;
+      | &quot;void&quot;
+
+(* Variable Declarations *)
+VarDeclaration
+    ::= TypeSpecifier Identifier VarDeclTail &quot;;&quot;
+
+VarDeclTail
+    ::= &quot;[&quot; IntLiteral &quot;]&quot;
+      | &quot;medalo&quot; Expression
+      | ε
+
+(* Function Declarations *)
+FuncDeclaration
+    ::= TypeSpecifier Identifier &quot;(&quot; ParameterList &quot;)&quot; CompoundStatement
+
+ParameterList
+    ::= ParameterListNonEmpty
+      | ε
+
+ParameterListNonEmpty
+    ::= Parameter ( &quot;,&quot; Parameter )*
+
+Parameter
+    ::= TypeSpecifier Identifier ( &quot;[&quot; IntLiteral? &quot;]&quot; )?
+
+(* Block and Compound Statements *)
+CompoundStatement
+    ::= &quot;shro&quot; StatementList &quot;khatam&quot;
+
+StatementList
+    ::= Statement StatementList
+      | ε
+
+Statement
+    ::= VarDeclaration
+      | AssignmentStatement
+      | SelectionStatement
+      | IterationStatement
+      | JumpStatement
+      | ReturnStatement
+      | IOStatement
+      | ExpressionStatement
+      | CompoundStatement
+
+(* Assignment: Variable/Array medalo Expression ; *)
+AssignmentStatement
+    ::= Variable &quot;medalo&quot; Expression &quot;;&quot;
+
+Variable
+    ::= Identifier ( &quot;[&quot; Expression &quot;]&quot; )?
+
+(* Citu Selection Statement: agar (condition) shro ... [magar ...] khatam *)
+SelectionStatement
+    ::= &quot;agar&quot; &quot;(&quot; Expression &quot;)&quot; &quot;shro&quot; StatementList ElseClause? &quot;khatam&quot;
+
+ElseClause
+    ::= &quot;magar&quot; StatementList
+
+(* Citu Iteration Statement: jabtak (condition) shro ... khatam *)
+IterationStatement
+    ::= &quot;jabtak&quot; &quot;(&quot; Expression &quot;)&quot; &quot;shro&quot; StatementList &quot;khatam&quot;
+
+(* Loop Control *)
+JumpStatement
+    ::= &quot;nikal&quot; &quot;;&quot;
+
+(* Return Statement *)
+ReturnStatement
+    ::= &quot;wapis&quot; Expression? &quot;;&quot;
+
+(* Standard I/O Statements *)
+IOStatement
+    ::= &quot;dikhao&quot; &quot;(&quot; Expression &quot;)&quot; &quot;;&quot;
+      | &quot;parho&quot; &quot;(&quot; Variable &quot;)&quot; &quot;;&quot;
+
+ExpressionStatement
+    ::= Expression &quot;;&quot;
+      | &quot;;&quot;
+
+(* Expressions with Precedence Hierarchy *)
+Expression
+    ::= LogicalOrExpression
+
+LogicalOrExpression
+    ::= LogicalAndExpression ( &quot;||&quot; LogicalAndExpression )*
+
+LogicalAndExpression
+    ::= EqualityExpression ( &quot;&amp;&amp;&quot; EqualityExpression )*
+
+EqualityExpression
+    ::= RelationalExpression ( ( &quot;=&quot; | &quot;==&quot; | &quot;!=&quot; ) RelationalExpression )*
+
+RelationalExpression
+    ::= AdditiveExpression ( ( &quot;&lt;&quot; | &quot;&lt;=&quot; | &quot;&gt;&quot; | &quot;&gt;=&quot; ) AdditiveExpression )*
+
+AdditiveExpression
+    ::= MultiplicativeExpression ( ( &quot;+&quot; | &quot;-&quot; ) MultiplicativeExpression )*
+
+MultiplicativeExpression
+    ::= UnaryExpression ( ( &quot;*&quot; | &quot;/&quot; | &quot;%&quot; ) UnaryExpression )*
+
+UnaryExpression
+    ::= ( &quot;+&quot; | &quot;-&quot; | &quot;!&quot; ) UnaryExpression
+      | PrimaryExpression
+
+PrimaryExpression
+    ::= Variable
+      | FunctionCall
+      | Literal
+      | &quot;(&quot; Expression &quot;)&quot;
+
+FunctionCall
+    ::= Identifier &quot;(&quot; ArgumentList &quot;)&quot;
+
+ArgumentList
+    ::= ArgumentListNonEmpty
+      | ε
+
+ArgumentListNonEmpty
+    ::= Expression ( &quot;,&quot; Expression )*
+
+Literal
+    ::= IntLiteral
+      | FloatLiteral
+      | CharLiteral
+      | StringLiteral
+
+Identifier
+    ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+IntLiteral
+    ::= [0-9]+ | &quot;0x&quot;[0-9a-fA-F]+
+
+FloatLiteral
+    ::= [0-9]+ &quot;.&quot; [0-9]+ ( [eE] [+-]? [0-9]+ )?
+
+CharLiteral
+    ::= &quot;'&quot; ( [^'\\] | &quot;\\&quot; . ) &quot;'&quot;
+
+StringLiteral
+    ::= &quot;\&quot;&quot; ( [^\&quot;\\] | &quot;\\&quot; . )* &quot;\&quot;&quot;
+</code></pre>
+<hr />
+<h3 id="24-grammar-properties-precedence-ambiguity-resolution">2.4 Grammar Properties, Precedence, &amp; Ambiguity Resolution</h3>
+<ol>
+<li>
+<p><strong>Elimination of Dangling-Else Ambiguity:</strong><br />
+   In standard ANSI C, an expression like <code>if (c1) if (c2) s1 else s2</code> is syntactically ambiguous because the grammar does not immediately determine which <code>if</code> binds to <code>else</code>.<br />
+   In Citu, the grammar enforces that <code>magar</code> must be enclosed directly within its parent <code>agar ... khatam</code> block:
+   <code>citu
+   agar ( condition1 ) shro
+       agar ( condition2 ) shro
+           s1 ;
+       magar
+           s2 ;
+       khatam
+   khatam</code>
+   Because every branch is bounded by explicit <code>khatam</code> markers, the grammar is strictly unambiguous with respect to conditionals.</p>
+</li>
+<li>
+<p><strong>Assignment vs. Equality Comparison:</strong><br />
+   In languages like C, using <code>=</code> for assignment inside a conditional (e.g., <code>if (a = 0)</code>) is a notorious source of logical bugs. Citu completely eliminates this pitfall:</p>
+</li>
+<li>Assignment requires the reserved keyword <code>medalo</code> (<code>a medalo 0 ;</code>).</li>
+<li>
+<p>Comparison allows both <code>=</code> and <code>==</code> as equality tests (<code>agar ( a[i] = 0 )</code> and <code>agar ( a[i] == 0 )</code> are both treated identically by the lexer as <code>TOKEN_EQ</code>).</p>
+</li>
+<li>
+<p><strong>Operator Precedence and Associativity Table:</strong></p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Precedence Level</th>
+<th style="text-align: left;">Operators</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Associativity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>1 (Highest)</strong></td>
+<td style="text-align: left;"><code>()</code>, <code>[]</code>, <code>.</code></td>
+<td style="text-align: left;">Grouping, Array Index, Call</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>2</strong></td>
+<td style="text-align: left;"><code>+</code>, <code>-</code>, <code>!</code></td>
+<td style="text-align: left;">Unary Plus, Negation, Logical NOT</td>
+<td style="text-align: left;">Right-to-Left</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>3</strong></td>
+<td style="text-align: left;"><code>*</code>, <code>/</code>, <code>%</code></td>
+<td style="text-align: left;">Multiplicative Operations</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>4</strong></td>
+<td style="text-align: left;"><code>+</code>, <code>-</code></td>
+<td style="text-align: left;">Additive Operations</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>5</strong></td>
+<td style="text-align: left;"><code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></td>
+<td style="text-align: left;">Relational Comparisons</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>6</strong></td>
+<td style="text-align: left;"><code>=</code>, <code>==</code>, <code>!=</code></td>
+<td style="text-align: left;">Equality and Inequality</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>7</strong></td>
+<td style="text-align: left;"><code>&amp;&amp;</code></td>
+<td style="text-align: left;">Logical AND</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>8</strong></td>
+<td style="text-align: left;"><code>\|\|</code></td>
+<td style="text-align: left;">Logical OR</td>
+<td style="text-align: left;">Left-to-Right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>9 (Lowest)</strong></td>
+<td style="text-align: left;"><code>medalo</code></td>
+<td style="text-align: left;">Assignment Operator</td>
+<td style="text-align: left;">Right-to-Left</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-section-3-compiler-data-structures">4. Section 3: Compiler Data Structures</h2>
+<p>Building a compiler for Citu requires four primary data structures:
+1. <strong>Token &amp; Lexical Buffer</strong>
+2. <strong>Scoped Symbol Table (Cactus Stack)</strong>
+3. <strong>Abstract Syntax Tree (AST)</strong>
+4. <strong>Diagnostic &amp; Error Reporter</strong></p>
+<h3 id="31-token-and-lexical-stream-data-structures">3.1 Token and Lexical Stream Data Structures</h3>
+<p>The lexer converts source text into a sequential stream of <code>Token</code> instances.</p>
+<pre><code class="language-cpp">#ifndef CITU_TOKEN_HPP
+#define CITU_TOKEN_HPP
+
+#include &lt;string&gt;
+#include &lt;variant&gt;
+
+enum class TokenType {
+    // Keywords
+    TOKEN_JABTAK, TOKEN_SHRO, TOKEN_KHATAM,
+    TOKEN_AGAR, TOKEN_MAGAR, TOKEN_NIKAL,
+    TOKEN_MEDALO, TOKEN_WAPIS, TOKEN_DIKHAO, TOKEN_PARHO,
+
+    // Data Types
+    TOKEN_INT16, TOKEN_INT32, TOKEN_UINT16, TOKEN_UINT32,
+    TOKEN_REAL, TOKEN_FLOAT, TOKEN_CHAR, TOKEN_VOID,
+
+    // Operators
+    TOKEN_PLUS, TOKEN_MINUS, TOKEN_STAR, TOKEN_SLASH, TOKEN_PERCENT,
+    TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_LTE, TOKEN_GT, TOKEN_GTE,
+    TOKEN_AND, TOKEN_OR, TOKEN_NOT,
+
+    // Delimiters
+    TOKEN_LPAREN, TOKEN_RPAREN, TOKEN_LBRACKET, TOKEN_RBRACKET,
+    TOKEN_SEMICOLON, TOKEN_COMMA,
+
+    // Literals and Identifiers
+    TOKEN_IDENTIFIER, TOKEN_INT_LITERAL, TOKEN_FLOAT_LITERAL,
+    TOKEN_CHAR_LITERAL, TOKEN_STRING_LITERAL,
+
+    // Stream markers
+    TOKEN_EOF, TOKEN_ERROR
+};
+
+struct SourceLocation {
+    std::string filename;
+    int line;
+    int column;
+};
+
+struct Token {
+    TokenType type;
+    std::string lexeme;
+    SourceLocation location;
+    std::variant&lt;std::monostate, int64_t, double, char, std::string&gt; literal_value;
+
+    Token(TokenType t, std::string lex, int l, int c)
+        : type(t), lexeme(std::move(lex)), location{&quot;&quot;, l, c} {}
+};
+
+#endif // CITU_TOKEN_HPP
+</code></pre>
+<hr />
+<h3 id="32-scoped-symbol-table-architecture">3.2 Scoped Symbol Table Architecture</h3>
+<p>Citu uses lexical scoping: variables declared in an inner block (<code>shro ... khatam</code>) shadow variables in outer blocks. When a block finishes (<code>khatam</code>), its local variables are destroyed.</p>
+<pre><code class="language-mermaid">graph TD
+    GlobalScope[&quot;Global Scope (Scope Level 0)&lt;br/&gt;- linear_search: Func&lt;br/&gt;- main: Func&quot;]
+    FunctionScope[&quot;Function Scope (Scope Level 1)&lt;br/&gt;- arr: int32[10]&lt;br/&gt;- size: int32&lt;br/&gt;- target: int32&lt;br/&gt;- i: int32&lt;br/&gt;- found_index: int32&quot;]
+    WhileScope[&quot;While Block Scope (Scope Level 2)&lt;br/&gt;- loop temporary bindings&quot;]
+    IfScope[&quot;Agar Block Scope (Scope Level 3)&lt;br/&gt;- branch bindings&quot;]
+
+    GlobalScope --&gt; FunctionScope
+    FunctionScope --&gt; WhileScope
+    WhileScope --&gt; IfScope
+</code></pre>
+<h4 id="symbol-table-implementation">Symbol Table Implementation:</h4>
+<pre><code class="language-cpp">#ifndef CITU_SYMBOL_TABLE_HPP
+#define CITU_SYMBOL_TABLE_HPP
+
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;unordered_map&gt;
+#include &lt;memory&gt;
+#include &lt;optional&gt;
+
+enum class DataType {
+    INT16, INT32, UINT16, UINT32, REAL, FLOAT, CHAR, VOID, UNKNOWN
+};
+
+enum class SymbolKind {
+    VARIABLE, FUNCTION, PARAMETER, ARRAY, CONSTANT
+};
+
+struct TypeInfo {
+    DataType base_type;
+    bool is_array = false;
+    int array_size = 0;
+    std::vector&lt;TypeInfo&gt; param_types; // For functions
+    DataType return_type = DataType::VOID; // For functions
+
+    int get_size_in_bytes() const {
+        int base_size = 4;
+        switch (base_type) {
+            case DataType::INT16:
+            case DataType::UINT16: base_size = 2; break;
+            case DataType::INT32:
+            case DataType::UINT32:
+            case DataType::FLOAT: base_size = 4; break;
+            case DataType::REAL: base_size = 8; break;
+            case DataType::CHAR: base_size = 1; break;
+            case DataType::VOID: base_size = 0; break;
+            default: base_size = 4; break;
+        }
+        return is_array ? (base_size * array_size) : base_size;
+    }
+};
+
+struct SymbolEntry {
+    std::string name;
+    TypeInfo type;
+    SymbolKind kind;
+    int scope_level;
+    int memory_offset; // Stack offset (e.g., -4(%rbp))
+    int line_declared;
+};
+
+class Scope {
+public:
+    int level;
+    std::shared_ptr&lt;Scope&gt; parent;
+    std::unordered_map&lt;std::string, SymbolEntry&gt; symbols;
+
+    Scope(int lvl, std::shared_ptr&lt;Scope&gt; p = nullptr) : level(lvl), parent(p) {}
+
+    bool insert(const SymbolEntry&amp; entry) {
+        if (symbols.find(entry.name) != symbols.end()) {
+            return false; // Error: Identifier redefinition in same scope
+        }
+        symbols[entry.name] = entry;
+        return true;
+    }
+
+    std::optional&lt;SymbolEntry&gt; lookup_local(const std::string&amp; name) const {
+        auto it = symbols.find(name);
+        if (it != symbols.end()) return it-&gt;second;
+        return std::nullopt;
+    }
+
+    std::optional&lt;SymbolEntry&gt; lookup(const std::string&amp; name) const {
+        auto it = symbols.find(name);
+        if (it != symbols.end()) return it-&gt;second;
+        if (parent) return parent-&gt;lookup(name);
+        return std::nullopt;
+    }
+};
+
+class ScopedSymbolTable {
+private:
+    std::shared_ptr&lt;Scope&gt; current_scope;
+    int current_level = 0;
+    int current_offset = 0;
+
+public:
+    ScopedSymbolTable() {
+        current_scope = std::make_shared&lt;Scope&gt;(0, nullptr);
+    }
+
+    void enter_scope() {
+        current_level++;
+        current_scope = std::make_shared&lt;Scope&gt;(current_level, current_scope);
+    }
+
+    void exit_scope() {
+        if (current_scope-&gt;parent) {
+            current_scope = current_scope-&gt;parent;
+            current_level--;
+        }
+    }
+
+    bool declare_variable(const std::string&amp; name, const TypeInfo&amp; type, int line) {
+        current_offset += type.get_size_in_bytes();
+        SymbolEntry entry{name, type, SymbolKind::VARIABLE, current_level, -current_offset, line};
+        return current_scope-&gt;insert(entry);
+    }
+
+    std::optional&lt;SymbolEntry&gt; resolve(const std::string&amp; name) const {
+        return current_scope-&gt;lookup(name);
+    }
+
+    int get_current_scope_level() const { return current_level; }
+};
+
+#endif // CITU_SYMBOL_TABLE_HPP
+</code></pre>
+<hr />
+<h3 id="33-abstract-syntax-tree-ast-data-structures">3.3 Abstract Syntax Tree (AST) Data Structures</h3>
+<p>The AST models the syntactic structure of Citu programs. We use the <strong>Visitor Pattern</strong> to decouple the AST representation from subsequent phases (Type Checking, Optimization, Three-Address Code Generation).</p>
+<pre><code class="language-cpp">#ifndef CITU_AST_HPP
+#define CITU_AST_HPP
+
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;memory&gt;
+#include &quot;citu_token.hpp&quot;
+#include &quot;citu_symbol_table.hpp&quot;
+
+// Forward declarations of AST Visitor
+class ASTVisitor;
+
+// Base AST Node
+class ASTNode {
+public:
+    SourceLocation location;
+    virtual ~ASTNode() = default;
+    virtual void accept(ASTVisitor* visitor) = 0;
+};
+
+// Base Expression Node
+class ExprNode : public ASTNode {
+public:
+    DataType deduced_type = DataType::UNKNOWN;
+};
+
+// Base Statement Node
+class StmtNode : public ASTNode {};
+
+// Binary Expression: left OP right
+class BinaryExprAST : public ExprNode {
+public:
+    TokenType op;
+    std::unique_ptr&lt;ExprNode&gt; left;
+    std::unique_ptr&lt;ExprNode&gt; right;
+
+    BinaryExprAST(TokenType o, std::unique_ptr&lt;ExprNode&gt; l, std::unique_ptr&lt;ExprNode&gt; r, SourceLocation loc)
+        : op(o), left(std::move(l)), right(std::move(r)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Unary Expression: OP expr
+class UnaryExprAST : public ExprNode {
+public:
+    TokenType op;
+    std::unique_ptr&lt;ExprNode&gt; operand;
+
+    UnaryExprAST(TokenType o, std::unique_ptr&lt;ExprNode&gt; opnd, SourceLocation loc)
+        : op(o), operand(std::move(opnd)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Literal Node: numbers, characters, strings
+class LiteralAST : public ExprNode {
+public:
+    TokenType lit_type;
+    std::string value_string;
+
+    LiteralAST(TokenType t, std::string val, SourceLocation loc)
+        : lit_type(t), value_string(std::move(val)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Variable Reference: identifier or array index arr[i]
+class VarRefAST : public ExprNode {
+public:
+    std::string name;
+    std::unique_ptr&lt;ExprNode&gt; array_index; // nullptr if scalar
+
+    VarRefAST(std::string id, std::unique_ptr&lt;ExprNode&gt; idx, SourceLocation loc)
+        : name(std::move(id)), array_index(std::move(idx)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Function Call Node: func(arg1, arg2)
+class FuncCallAST : public ExprNode {
+public:
+    std::string func_name;
+    std::vector&lt;std::unique_ptr&lt;ExprNode&gt;&gt; arguments;
+
+    FuncCallAST(std::string name, std::vector&lt;std::unique_ptr&lt;ExprNode&gt;&gt; args, SourceLocation loc)
+        : func_name(std::move(name)), arguments(std::move(args)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Assignment Statement: variable medalo expression ;
+class AssignStmtAST : public StmtNode {
+public:
+    std::unique_ptr&lt;VarRefAST&gt; target;
+    std::unique_ptr&lt;ExprNode&gt; expression;
+
+    AssignStmtAST(std::unique_ptr&lt;VarRefAST&gt; tgt, std::unique_ptr&lt;ExprNode&gt; expr, SourceLocation loc)
+        : target(std::move(tgt)), expression(std::move(expr)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Selection Statement: agar (cond) shro ... [magar ...] khatam
+class IfStmtAST : public StmtNode {
+public:
+    std::unique_ptr&lt;ExprNode&gt; condition;
+    std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; then_branch;
+    std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; else_branch; // Empty if no magar
+
+    IfStmtAST(std::unique_ptr&lt;ExprNode&gt; cond,
+              std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; then_b,
+              std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; else_b,
+              SourceLocation loc)
+        : condition(std::move(cond)), then_branch(std::move(then_b)), else_branch(std::move(else_b)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Iteration Statement: jabtak (cond) shro ... khatam
+class WhileStmtAST : public StmtNode {
+public:
+    std::unique_ptr&lt;ExprNode&gt; condition;
+    std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; body;
+
+    WhileStmtAST(std::unique_ptr&lt;ExprNode&gt; cond, std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; b, SourceLocation loc)
+        : condition(std::move(cond)), body(std::move(b)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Jump Statement: nikal ;
+class BreakStmtAST : public StmtNode {
+public:
+    BreakStmtAST(SourceLocation loc) { location = loc; }
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Return Statement: wapis [expr] ;
+class ReturnStmtAST : public StmtNode {
+public:
+    std::unique_ptr&lt;ExprNode&gt; return_value;
+
+    ReturnStmtAST(std::unique_ptr&lt;ExprNode&gt; val, SourceLocation loc)
+        : return_value(std::move(val)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Block/Compound Statement: shro ... khatam
+class CompoundStmtAST : public StmtNode {
+public:
+    std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; statements;
+
+    CompoundStmtAST(std::vector&lt;std::unique_ptr&lt;StmtNode&gt;&gt; stmts, SourceLocation loc)
+        : statements(std::move(stmts)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Function Declaration
+class FuncDeclAST : public ASTNode {
+public:
+    TypeInfo return_type;
+    std::string name;
+    std::vector&lt;std::pair&lt;TypeInfo, std::string&gt;&gt; parameters;
+    std::unique_ptr&lt;CompoundStmtAST&gt; body;
+
+    FuncDeclAST(TypeInfo ret, std::string n,
+                std::vector&lt;std::pair&lt;TypeInfo, std::string&gt;&gt; params,
+                std::unique_ptr&lt;CompoundStmtAST&gt; b, SourceLocation loc)
+        : return_type(ret), name(std::move(n)), parameters(std::move(params)), body(std::move(b)) { location = loc; }
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+// Program Root
+class ProgramAST : public ASTNode {
+public:
+    std::vector&lt;std::unique_ptr&lt;ASTNode&gt;&gt; declarations;
+
+    void accept(ASTVisitor* visitor) override;
+};
+
+#endif // CITU_AST_HPP
+</code></pre>
+<hr />
+<h3 id="34-ast-visual-hierarchy">3.4 AST Visual Hierarchy</h3>
+<p>For the Citu construct:</p>
+<pre><code class="language-citu">jabtak ( i &lt; SIZE ) shro
+    agar ( a[i] = 0 ) shro
+        nikal ;
+    magar
+    khatam
+    i medalo ( i + 1 ) ;
+khatam
+</code></pre>
+<p>The parsed AST produces the following hierarchical node structure:</p>
+<pre><code class="language-mermaid">graph TD
+    WhileNode[&quot;WhileStmtAST (jabtak)&quot;]
+    WhileCond[&quot;BinaryExpr: i &lt; SIZE&quot;]
+    WhileBody[&quot;CompoundStmtAST (shro ... khatam)&quot;]
+
+    WhileNode --&gt; WhileCond
+    WhileNode --&gt; WhileBody
+
+    IfNode[&quot;IfStmtAST (agar ... magar ... khatam)&quot;]
+    AssignNode[&quot;AssignStmtAST (medalo)&quot;]
+
+    WhileBody --&gt; IfNode
+    WhileBody --&gt; AssignNode
+
+    IfCond[&quot;BinaryExpr: a[i] = 0&quot;]
+    IfThen[&quot;Then: BreakStmtAST (nikal)&quot;]
+    IfElse[&quot;Else: Empty&quot;]
+
+    IfNode --&gt; IfCond
+    IfNode --&gt; IfThen
+    IfNode --&gt; IfElse
+
+    AssignTarget[&quot;Target: i&quot;]
+    AssignExpr[&quot;Expr: BinaryExpr (i + 1)&quot;]
+
+    AssignNode --&gt; AssignTarget
+    AssignNode --&gt; AssignExpr
+</code></pre>
+<hr />
+<h3 id="35-diagnostic-error-reporting-structures">3.5 Diagnostic &amp; Error Reporting Structures</h3>
+<p>To deliver informative compilation errors (pointing directly to source line and column numbers) and support panic-mode recovery in the parser:</p>
+<pre><code class="language-cpp">#ifndef CITU_DIAGNOSTICS_HPP
+#define CITU_DIAGNOSTICS_HPP
+
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+enum class ErrorSeverity {
+    WARNING, ERROR, FATAL
+};
+
+struct Diagnostic {
+    ErrorSeverity severity;
+    std::string error_code; // e.g. &quot;E0104: Undefined Variable&quot;
+    std::string message;
+    SourceLocation location;
+    std::string context_line;
+};
+
+class DiagnosticEngine {
+private:
+    std::vector&lt;Diagnostic&gt; diagnostics;
+    int error_count = 0;
+
+public:
+    void report(ErrorSeverity sev, const std::string&amp; code, const std::string&amp; msg, SourceLocation loc, const std::string&amp; line_src = &quot;&quot;) {
+        diagnostics.push_back({sev, code, msg, loc, line_src});
+        if (sev == ErrorSeverity::ERROR || sev == ErrorSeverity::FATAL) {
+            error_count++;
+        }
+    }
+
+    bool has_errors() const { return error_count &gt; 0; }
+
+    void print_all() const {
+        for (const auto&amp; d : diagnostics) {
+            std::string sev_str = (d.severity == ErrorSeverity::WARNING) ? &quot;\033[1;33m[Warning]\033[0m&quot; : &quot;\033[1;31m[Error]\033[0m&quot;;
+            std::cerr &lt;&lt; sev_str &lt;&lt; &quot; &quot; &lt;&lt; d.location.filename &lt;&lt; &quot;:&quot; &lt;&lt; d.location.line &lt;&lt; &quot;:&quot; &lt;&lt; d.location.column 
+                      &lt;&lt; &quot; &quot; &lt;&lt; d.error_code &lt;&lt; &quot;: &quot; &lt;&lt; d.message &lt;&lt; &quot;\n&quot;;
+            if (!d.context_line.empty()) {
+                std::cerr &lt;&lt; &quot;    &quot; &lt;&lt; d.context_line &lt;&lt; &quot;\n&quot;;
+                std::cerr &lt;&lt; &quot;    &quot; &lt;&lt; std::string(d.location.column - 1, ' ') &lt;&lt; &quot;^&quot; &lt;&lt; &quot;\n&quot;;
+            }
+        }
+    }
+};
+
+#endif // CITU_DIAGNOSTICS_HPP
+</code></pre>
+<hr />
+<h2 id="5-section-4-intermediate-file-formats">5. Section 4: Intermediate File Formats</h2>
+<p>A production-grade compiler pipeline executes across well-defined stages, with each component generating structured intermediate representations for inspection, optimization, and debugging.</p>
+<h3 id="41-compiler-component-pipeline-overview">4.1 Compiler Component Pipeline Overview</h3>
+<pre><code class="language-mermaid">flowchart TD
+    Src[&quot;Source File (.citu)&quot;] --&gt; Lexer[&quot;Lexer (Scanner)&quot;]
+    Lexer --&gt;|&quot;.tok file&quot;| Parser[&quot;Parser (Syntax Analyzer)&quot;]
+    Parser --&gt;|&quot;.ast file&quot;| SemCheck[&quot;Semantic Analyzer&quot;]
+    SemCheck --&gt;|&quot;.sym file&quot;| IRGen[&quot;Intermediate Code Generator&quot;]
+    IRGen --&gt;|&quot;.tac file&quot;| Optimizer[&quot;Target-Independent Optimizer&quot;]
+    Optimizer --&gt;|&quot;.opt.tac file&quot;| CodeGen[&quot;Target Code Generator&quot;]
+    CodeGen --&gt;|&quot;.asm file&quot;| Assembler[&quot;GNU Assembler / Linker&quot;]
+    Assembler --&gt; Exe[&quot;Executable Binary&quot;]
+</code></pre>
+<hr />
+<h3 id="42-lexer-output-format-token-stream-tok">4.2 Lexer Output Format: Token Stream (<code>.tok</code>)</h3>
+<p>The Lexer produces a <code>.tok</code> file recording each token's location, category, and lexeme.</p>
+<h4 id="file-format-specification">File Format Specification:</h4>
+<pre><code class="language-text">LINE:COL &lt;TAB&gt; TOKEN_TYPE &lt;TAB&gt; &quot;LEXEME&quot; &lt;TAB&gt; [LITERAL_VALUE]
+</code></pre>
+<h4 id="concrete-example-output-examples01_linear_searchtok">Concrete Example Output (<code>examples/01_linear_search.tok</code>):</h4>
+<pre><code class="language-text">1:1     TOKEN_INT32          &quot;int32&quot;          
+1:7     TOKEN_IDENTIFIER     &quot;linear_search&quot;  
+1:20    TOKEN_LPAREN         &quot;(&quot;              
+1:21    TOKEN_INT32          &quot;int32&quot;          
+1:27    TOKEN_IDENTIFIER     &quot;arr&quot;            
+1:30    TOKEN_LBRACKET       &quot;[&quot;              
+1:31    TOKEN_INT_LITERAL    &quot;10&quot;             10
+1:33    TOKEN_RBRACKET       &quot;]&quot;              
+1:34    TOKEN_COMMA          &quot;,&quot;              
+1:36    TOKEN_INT32          &quot;int32&quot;          
+1:42    TOKEN_IDENTIFIER     &quot;size&quot;           
+1:46    TOKEN_COMMA          &quot;,&quot;              
+1:48    TOKEN_INT32          &quot;int32&quot;          
+1:54    TOKEN_IDENTIFIER     &quot;target&quot;         
+1:60    TOKEN_RPAREN         &quot;)&quot;              
+1:62    TOKEN_SHRO           &quot;shro&quot;           
+2:5     TOKEN_INT32          &quot;int32&quot;          
+2:11    TOKEN_IDENTIFIER     &quot;i&quot;              
+2:13    TOKEN_SEMICOLON      &quot;;&quot;              
+5:5     TOKEN_IDENTIFIER     &quot;i&quot;              
+5:7     TOKEN_MEDALO         &quot;medalo&quot;         
+5:14    TOKEN_INT_LITERAL    &quot;0&quot;              0
+5:16    TOKEN_SEMICOLON      &quot;;&quot;              
+8:5     TOKEN_JABTAK         &quot;jabtak&quot;         
+8:12    TOKEN_LPAREN         &quot;(&quot;              
+8:14    TOKEN_IDENTIFIER     &quot;i&quot;              
+8:16    TOKEN_LT             &quot;&lt;&quot;              
+8:18    TOKEN_IDENTIFIER     &quot;size&quot;           
+8:23    TOKEN_RPAREN         &quot;)&quot;              
+8:25    TOKEN_SHRO           &quot;shro&quot;           
+9:9     TOKEN_AGAR           &quot;agar&quot;           
+9:14    TOKEN_LPAREN         &quot;(&quot;              
+9:16    TOKEN_IDENTIFIER     &quot;arr&quot;            
+9:19    TOKEN_LBRACKET       &quot;[&quot;              
+9:20    TOKEN_IDENTIFIER     &quot;i&quot;              
+9:21    TOKEN_RBRACKET       &quot;]&quot;              
+9:23    TOKEN_EQ             &quot;=&quot;              
+9:25    TOKEN_IDENTIFIER     &quot;target&quot;         
+9:31    TOKEN_RPAREN         &quot;)&quot;              
+9:33    TOKEN_SHRO           &quot;shro&quot;           
+10:13   TOKEN_IDENTIFIER     &quot;found_index&quot;    
+10:25   TOKEN_MEDALO         &quot;medalo&quot;         
+10:32   TOKEN_IDENTIFIER     &quot;i&quot;              
+10:34   TOKEN_SEMICOLON      &quot;;&quot;              
+11:13   TOKEN_NIKAL          &quot;nikal&quot;          
+11:18   TOKEN_SEMICOLON      &quot;;&quot;              
+12:9    TOKEN_MAGAR          &quot;magar&quot;          
+14:9    TOKEN_KHATAM         &quot;khatam&quot;         
+15:9    TOKEN_IDENTIFIER     &quot;i&quot;              
+15:11   TOKEN_MEDALO         &quot;medalo&quot;         
+15:18   TOKEN_LPAREN         &quot;(&quot;              
+15:20   TOKEN_IDENTIFIER     &quot;i&quot;              
+15:22   TOKEN_PLUS           &quot;+&quot;              
+15:24   TOKEN_INT_LITERAL    &quot;1&quot;              1
+15:26   TOKEN_RPAREN         &quot;)&quot;              
+15:28   TOKEN_SEMICOLON      &quot;;&quot;              
+16:5    TOKEN_KHATAM         &quot;khatam&quot;         
+18:5    TOKEN_WAPIS          &quot;wapis&quot;          
+18:11   TOKEN_IDENTIFIER     &quot;found_index&quot;    
+18:23   TOKEN_SEMICOLON      &quot;;&quot;              
+19:1    TOKEN_KHATAM         &quot;khatam&quot;         
+</code></pre>
+<hr />
+<h3 id="43-parser-output-format-abstract-syntax-tree-ast">4.3 Parser Output Format: Abstract Syntax Tree (<code>.ast</code>)</h3>
+<p>The parser outputs an indented, human-readable S-expression or JSON representation showing the grammatical hierarchy.</p>
+<h4 id="concrete-output-examples01_linear_searchast">Concrete Output (<code>examples/01_linear_search.ast</code>):</h4>
+<pre><code class="language-json">{
+  &quot;node&quot;: &quot;ProgramAST&quot;,
+  &quot;declarations&quot;: [
+    {
+      &quot;node&quot;: &quot;FuncDeclAST&quot;,
+      &quot;name&quot;: &quot;linear_search&quot;,
+      &quot;return_type&quot;: &quot;int32&quot;,
+      &quot;parameters&quot;: [
+        { &quot;name&quot;: &quot;arr&quot;, &quot;type&quot;: &quot;int32[]&quot;, &quot;size&quot;: 10 },
+        { &quot;name&quot;: &quot;size&quot;, &quot;type&quot;: &quot;int32&quot; },
+        { &quot;name&quot;: &quot;target&quot;, &quot;type&quot;: &quot;int32&quot; }
+      ],
+      &quot;body&quot;: {
+        &quot;node&quot;: &quot;CompoundStmtAST&quot;,
+        &quot;statements&quot;: [
+          { &quot;node&quot;: &quot;VarDeclAST&quot;, &quot;name&quot;: &quot;i&quot;, &quot;type&quot;: &quot;int32&quot; },
+          { &quot;node&quot;: &quot;VarDeclAST&quot;, &quot;name&quot;: &quot;found_index&quot;, &quot;type&quot;: &quot;int32&quot; },
+          {
+            &quot;node&quot;: &quot;AssignStmtAST&quot;,
+            &quot;target&quot;: &quot;i&quot;,
+            &quot;expression&quot;: { &quot;node&quot;: &quot;LiteralAST&quot;, &quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 0 }
+          },
+          {
+            &quot;node&quot;: &quot;AssignStmtAST&quot;,
+            &quot;target&quot;: &quot;found_index&quot;,
+            &quot;expression&quot;: { &quot;node&quot;: &quot;LiteralAST&quot;, &quot;type&quot;: &quot;int&quot;, &quot;value&quot;: -1 }
+          },
+          {
+            &quot;node&quot;: &quot;WhileStmtAST&quot;,
+            &quot;condition&quot;: {
+              &quot;node&quot;: &quot;BinaryExprAST&quot;,
+              &quot;op&quot;: &quot;&lt;&quot;,
+              &quot;left&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;i&quot; },
+              &quot;right&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;size&quot; }
+            },
+            &quot;body&quot;: [
+              {
+                &quot;node&quot;: &quot;IfStmtAST&quot;,
+                &quot;condition&quot;: {
+                  &quot;node&quot;: &quot;BinaryExprAST&quot;,
+                  &quot;op&quot;: &quot;==&quot;,
+                  &quot;left&quot;: {
+                    &quot;node&quot;: &quot;VarRefAST&quot;,
+                    &quot;name&quot;: &quot;arr&quot;,
+                    &quot;index&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;i&quot; }
+                  },
+                  &quot;right&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;target&quot; }
+                },
+                &quot;then_branch&quot;: [
+                  {
+                    &quot;node&quot;: &quot;AssignStmtAST&quot;,
+                    &quot;target&quot;: &quot;found_index&quot;,
+                    &quot;expression&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;i&quot; }
+                  },
+                  { &quot;node&quot;: &quot;BreakStmtAST&quot; }
+                ],
+                &quot;else_branch&quot;: []
+              },
+              {
+                &quot;node&quot;: &quot;AssignStmtAST&quot;,
+                &quot;target&quot;: &quot;i&quot;,
+                &quot;expression&quot;: {
+                  &quot;node&quot;: &quot;BinaryExprAST&quot;,
+                  &quot;op&quot;: &quot;+&quot;,
+                  &quot;left&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;i&quot; },
+                  &quot;right&quot;: { &quot;node&quot;: &quot;LiteralAST&quot;, &quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 1 }
+                }
+              }
+            ]
+          },
+          {
+            &quot;node&quot;: &quot;ReturnStmtAST&quot;,
+            &quot;value&quot;: { &quot;node&quot;: &quot;VarRefAST&quot;, &quot;name&quot;: &quot;found_index&quot; }
+          }
+        ]
+      }
+    }
+  ]
+}
+</code></pre>
+<hr />
+<h3 id="44-semantic-analyzer-output-symbol-table-dump-sym">4.4 Semantic Analyzer Output: Symbol Table Dump (<code>.sym</code>)</h3>
+<p>The semantic analyzer produces a formatted scope table dump (<code>.sym</code>) validating variable scopes, resolved types, byte allocations, and stack offsets.</p>
+<h4 id="concrete-output-examples01_linear_searchsym">Concrete Output (<code>examples/01_linear_search.sym</code>):</h4>
+<pre><code class="language-text">=========================================================================================
+                               CITU COMPILER SYMBOL TABLE DUMP
+=========================================================================================
+SCOPE LEVEL 0 [GLOBAL]:
+-----------------------------------------------------------------------------------------
+NAME            KIND        TYPE            SIZE (BYTES)    OFFSET      LINE DECLARED
+-----------------------------------------------------------------------------------------
+linear_search   FUNCTION    (int32,int32,int32)-&gt;int32   0      0x0000      1
+main            FUNCTION    ()-&gt;int32                    0      0x0000      21
+-----------------------------------------------------------------------------------------
+
+SCOPE LEVEL 1 [FUNCTION: linear_search]:
+Parent Scope: GLOBAL (0)
+Stack Frame Size: 64 bytes
+-----------------------------------------------------------------------------------------
+NAME            KIND        TYPE            SIZE (BYTES)    OFFSET      LINE DECLARED
+-----------------------------------------------------------------------------------------
+arr             PARAMETER   int32[10]       8 (ptr)         +16(%rbp)   1
+size            PARAMETER   int32           4               +24(%rbp)   1
+target          PARAMETER   int32           4               +32(%rbp)   1
+i               VARIABLE    int32           4               -4(%rbp)    2
+found_index     VARIABLE    int32           4               -8(%rbp)    3
+-----------------------------------------------------------------------------------------
+
+SCOPE LEVEL 2 [BLOCK: jabtak loop]:
+Parent Scope: linear_search (1)
+-----------------------------------------------------------------------------------------
+NAME            KIND        TYPE            SIZE (BYTES)    OFFSET      LINE DECLARED
+-----------------------------------------------------------------------------------------
+(No local variables declared; inner scope inherits level 1 identifiers)
+-----------------------------------------------------------------------------------------
+</code></pre>
+<hr />
+<h3 id="45-intermediate-representation-ir-three-address-code-tac">4.5 Intermediate Representation (IR): Three-Address Code (<code>.tac</code>)</h3>
+<p>The compiler uses <strong>Three-Address Code (TAC)</strong> structured as quadruples:
+$$\text{Quadruple} = (\text{Opcode}, \text{Arg1}, \text{Arg2}, \text{Result})$$</p>
+<h4 id="citu-tac-instruction-set">Citu TAC Instruction Set:</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">TAC Category</th>
+<th style="text-align: left;">Opcode Format</th>
+<th style="text-align: left;">Semantic Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Arithmetic</strong></td>
+<td style="text-align: left;"><code>ADD, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow x + y$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>SUB, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow x - y$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>MUL, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow x \times y$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>DIV, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow x \div y$</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Assignment</strong></td>
+<td style="text-align: left;"><code>ASSIGN, x, _, t</code></td>
+<td style="text-align: left;">$t \leftarrow x$</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Array Access</strong></td>
+<td style="text-align: left;"><code>LOAD_ARR, arr, idx, t</code></td>
+<td style="text-align: left;">$t \leftarrow arr[idx]$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>STORE_ARR, x, arr, idx</code></td>
+<td style="text-align: left;">$arr[idx] \leftarrow x$</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Relational</strong></td>
+<td style="text-align: left;"><code>EQ, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow (x == y)$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>LT, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow (x &lt; y)$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>GT, x, y, t</code></td>
+<td style="text-align: left;">$t \leftarrow (x &gt; y)$</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Control Flow</strong></td>
+<td style="text-align: left;"><code>LABEL, _, _, L</code></td>
+<td style="text-align: left;">Mark code label $L$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>JUMP, _, _, L</code></td>
+<td style="text-align: left;">Unconditional jump to label $L$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>JUMP_IF_FALSE, c, _, L</code></td>
+<td style="text-align: left;">If $c == 0$ jump to label $L$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>JUMP_IF_TRUE, c, _, L</code></td>
+<td style="text-align: left;">If $c \ne 0$ jump to label $L$</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Subroutines</strong></td>
+<td style="text-align: left;"><code>PARAM, x, _, _</code></td>
+<td style="text-align: left;">Push argument $x$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>CALL, func, nargs, t</code></td>
+<td style="text-align: left;">Call function, save return in $t$</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>RETURN, x, _, _</code></td>
+<td style="text-align: left;">Return $x$ to caller</td>
+</tr>
+</tbody>
+</table>
+<h4 id="concrete-tac-file-examples01_linear_searchtac">Concrete TAC File (<code>examples/01_linear_search.tac</code>):</h4>
+<pre><code class="language-text"># Three-Address Code (TAC) for linear_search
+FUNC_BEGIN linear_search
+    ASSIGN, 0, _, i
+    ASSIGN, -1, _, found_index
+
+L_LOOP_START:
+    LT, i, size, t0
+    JUMP_IF_FALSE, t0, _, L_LOOP_END
+
+    # Array access arr[i]
+    MUL, i, 4, t1
+    LOAD_ARR, arr, t1, t2
+
+    # agar (arr[i] = target)
+    EQ, t2, target, t3
+    JUMP_IF_FALSE, t3, _, L_ELSE_BRANCH
+
+    # Then-branch
+    ASSIGN, i, _, found_index
+    JUMP, _, _, L_LOOP_END       # nikal ; statement (break)
+
+L_ELSE_BRANCH:
+    # Empty else (magar) branch
+
+L_AGAR_END:
+    # i medalo (i + 1)
+    ADD, i, 1, t4
+    ASSIGN, t4, _, i
+    JUMP, _, _, L_LOOP_START
+
+L_LOOP_END:
+    RETURN, found_index, _, _
+FUNC_END linear_search
+</code></pre>
+<hr />
+<h3 id="46-code-generation-output-assembly-file-asm">4.6 Code Generation Output: Assembly File (<code>.asm</code>)</h3>
+<p>The backend emits standard GNU x86-64 assembly targeting System V AMD64 ABI:</p>
+<pre><code class="language-nasm">.global linear_search
+.type linear_search, @function
+linear_search:
+    pushq   %rbp
+    movq    %rsp, %rbp
+    subq    $32, %rsp               # Allocate stack frame
+
+    # Save incoming parameters
+    movq    %rdi, -24(%rbp)         # arr base address
+    movl    %esi, -28(%rbp)         # size
+    movl    %edx, -32(%rbp)         # target
+
+    # i medalo 0
+    movl    $0, -4(%rbp)
+    # found_index medalo -1
+    movl    $-1, -8(%rbp)
+
+.L_LOOP_START:
+    movl    -4(%rbp), %eax
+    cmpl    -28(%rbp), %eax
+    jge     .L_LOOP_END             # If i &gt;= size, exit loop
+
+    # Load arr[i]
+    movl    -4(%rbp), %eax
+    cltq
+    leaq    0(,%rax,4), %rdx
+    movq    -24(%rbp), %rax
+    addq    %rdx, %rax
+    movl    (%rax), %eax            # eax = arr[i]
+
+    # Compare with target
+    cmpl    -32(%rbp), %eax
+    jne     .L_ELSE_BRANCH
+
+    # Then-branch: found_index medalo i
+    movl    -4(%rbp), %eax
+    movl    %eax, -8(%rbp)
+    jmp     .L_LOOP_END             # nikal ; (break out of loop)
+
+.L_ELSE_BRANCH:
+    # Empty else
+
+.L_AGAR_END:
+    # i medalo (i + 1)
+    addl    $1, -4(%rbp)
+    jmp     .L_LOOP_START
+
+.L_LOOP_END:
+    movl    -8(%rbp), %eax          # Return value in %eax
+    movq    %rbp, %rsp
+    popq    %rbp
+    ret
+</code></pre>
+<hr />
+<h2 id="6-section-5-git-repository-submission-details">6. Section 5: Git Repository &amp; Submission Details</h2>
+<h3 id="51-student-id-repository-metadata">5.1 Student ID &amp; Repository Metadata</h3>
+<ul>
+<li><strong>Student Name:</strong> Mobeen Qamar</li>
+<li><strong>Student ID:</strong> <code>BSCS23050</code></li>
+<li><strong>Institution:</strong> Information Technology University (ITU) of the Punjab, Lahore</li>
+<li><strong>Degree Program:</strong> Bachelor of Science in Computer Science (BSCS)</li>
+<li><strong>Repository URL:</strong> <a href="https://github.com/Mobeen-Dev/CompilerConstruction.git">https://github.com/Mobeen-Dev/CompilerConstruction.git</a></li>
+<li><strong>Branch:</strong> <code>phase-1</code> (and synchronized with <code>main</code>)</li>
+<li><strong>Documentation Path in Repository:</strong> <code>doc/citu_language_specification.md</code></li>
+<li><strong>Sample Code Path in Repository:</strong> <code>examples/</code></li>
+</ul>
+<hr />
+<h3 id="52-repository-access-collaborator-setup">5.2 Repository Access &amp; Collaborator Setup</h3>
+<p>To ensure Dr. Umar Suleman and the course Teaching Assistant have full access to evaluate the repository:</p>
+<ol>
+<li>Log into GitHub and navigate to the project repository:<br />
+<code>https://github.com/Mobeen-Dev/CompilerConstruction/settings/access</code></li>
+<li>Click <strong>"Add people"</strong>.</li>
+<li>Add the instructor's email: <strong><code>umarsuleman@gmail.com</code></strong> and grant <strong>Write / Read</strong> permissions.</li>
+<li>Add the course TA's email: <strong><code>mscs24052@itu.edu.pk</code></strong> and grant <strong>Write / Read</strong> permissions.</li>
+<li>Click <strong>"Add to this repository"</strong> to dispatch GitHub collaboration invitations.</li>
+</ol>
+<hr />
+<h3 id="53-commit-verification-submission-text">5.3 Commit Verification &amp; Submission Text</h3>
+<p>The final submission requires providing the exact Commit Hash and Repository URL in one concise text block.</p>
+<h4 id="submission-format-block">Submission Format Block:</h4>
+<pre><code class="language-text">================================================================================
+COMPILER CONSTRUCTION (ITU) - PHASE 1 SUBMISSION
+================================================================================
+Student Name   : Mobeen Qamar
+Student ID     : BSCS23050
+Repository URL : https://github.com/Mobeen-Dev/CompilerConstruction.git
+Commit Hash    : b83f2d175678a085b1e8b92cfc19ac9fa8203bdf (branch: phase-1)
+Branch         : phase-1
+
+Invited Collaborators:
+- umarsuleman@gmail.com (Instructor)
+- mscs24052@itu.edu.pk (Teaching Assistant)
+
+Submission Document Location:
+- Specification &amp; Grammar Document: doc/citu_language_specification.md
+- Sample Citu Programs:
+    * examples/01_linear_search.citu
+    * examples/02_factorial_fibonacci.citu
+    * examples/03_bubble_sort.citu
+================================================================================
+</code></pre>
+<hr />
+<p><em>End of Citu Language Specification &amp; Compiler Design Document.</em></p>
+</body>
+</html>
