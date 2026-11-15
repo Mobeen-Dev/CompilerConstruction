@@ -1570,7 +1570,7 @@ COMPILER CONSTRUCTION (ITU) - PHASE 1 SUBMISSION
 Student Name   : Mobeen Qamar
 Student ID     : BSCS23050
 Repository URL : https://github.com/Mobeen-Dev/CompilerConstruction.git
-Commit Hash    : [COMMIT_HASH]
+Commit Hash    : b83f2d175678a085b1e8b92cfc19ac9fa8203bdf (branch: phase-1)
 Branch         : phase-1
 
 Invited Collaborators:
