@@ -1,0 +1,20 @@
+int32 main() shro
+    int32 i ;
+    int32 j ;
+    int32 total ;
+
+    i medalo 0 ;
+    total medalo 0 ;
+
+    jabtak ( i < 5 ) shro
+        j medalo 0 ;
+        jabtak ( j < 5 ) shro
+            total medalo ( total + ( i * j ) ) ;
+            j medalo ( j + 1 ) ;
+        khatam
+        i medalo ( i + 1 ) ;
+    khatam
+
+    dikhao(total) ;
+    wapis 0 ;
+khatam

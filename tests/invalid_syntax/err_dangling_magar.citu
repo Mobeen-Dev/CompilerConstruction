@@ -1,0 +1,8 @@
+int32 main() shro
+    int32 x ;
+    x medalo 5 ;
+    magar // Error: magar without enclosing agar
+        x medalo 10 ;
+    khatam
+    wapis 0 ;
+khatam

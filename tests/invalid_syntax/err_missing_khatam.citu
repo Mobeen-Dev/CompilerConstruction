@@ -1,0 +1,4 @@
+int32 main() shro
+    int32 x ;
+    x medalo 10 ;
+    // Missing khatam to close block

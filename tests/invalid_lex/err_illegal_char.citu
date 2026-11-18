@@ -1,0 +1,5 @@
+int32 main() shro
+    int32 x ;
+    x medalo 10 @ 5 ; // @ is an illegal character
+    wapis 0 ;
+khatam

@@ -1,0 +1,88 @@
+ProgramAST (2 declarations)
+  FuncDecl: int32 linear_search(int32 arr[10], int32 size, int32 target)
+    Block (shro ... khatam) [6 statements]
+      VarDecl: int32 i
+      VarDecl: int32 found_index
+      AssignStmt (medalo)
+        VarRef: i
+        Literal (int): 0
+      AssignStmt (medalo)
+        VarRef: found_index
+        UnaryExpr '-'
+          Literal (int): 1
+      WhileStmt (jabtak)
+        Condition:
+          BinaryExpr '<'
+            VarRef: i
+            VarRef: size
+        Body:
+          IfStmt (agar)
+            Condition:
+              BinaryExpr '=='
+                VarRef: arr [indexed]
+                  VarRef: i
+                VarRef: target
+            Then Branch:
+              AssignStmt (medalo)
+                VarRef: found_index
+                VarRef: i
+              BreakStmt (nikal)
+          AssignStmt (medalo)
+            VarRef: i
+            BinaryExpr '+'
+              VarRef: i
+              Literal (int): 1
+      ReturnStmt (wapis)
+        VarRef: found_index
+  FuncDecl: int32 main()
+    Block (shro ... khatam) [10 statements]
+      VarDecl: int32 numbers[10]
+      VarDecl: int32 target
+      VarDecl: int32 result
+      VarDecl: int32 idx
+      AssignStmt (medalo)
+        VarRef: idx
+        Literal (int): 0
+      WhileStmt (jabtak)
+        Condition:
+          BinaryExpr '<'
+            VarRef: idx
+            Literal (int): 10
+        Body:
+          AssignStmt (medalo)
+            VarRef: numbers [indexed]
+              VarRef: idx
+            BinaryExpr '*'
+              VarRef: idx
+              Literal (int): 5
+          AssignStmt (medalo)
+            VarRef: idx
+            BinaryExpr '+'
+              VarRef: idx
+              Literal (int): 1
+      AssignStmt (medalo)
+        VarRef: target
+        Literal (int): 25
+      AssignStmt (medalo)
+        VarRef: result
+        FuncCall: linear_search (3 args)
+          VarRef: numbers
+          Literal (int): 10
+          VarRef: target
+      IfStmt (agar)
+        Condition:
+          BinaryExpr '!='
+            VarRef: result
+            UnaryExpr '-'
+              Literal (int): 1
+        Then Branch:
+          IOStmt: dikhao
+            Literal (string): Target element found at index: 
+          IOStmt: dikhao
+            VarRef: result
+        Else Branch (magar):
+          IOStmt: dikhao
+            Literal (string): Target element was not found in array.
+      ReturnStmt (wapis)
+        Literal (int): 0
+

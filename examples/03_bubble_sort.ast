@@ -1,0 +1,145 @@
+ProgramAST (2 declarations)
+  FuncDecl: void bubble_sort(int32 arr[8], int32 n)
+    Block (shro ... khatam) [6 statements]
+      VarDecl: int32 i
+      VarDecl: int32 j
+      VarDecl: int32 temp
+      VarDecl: int32 swapped
+      AssignStmt (medalo)
+        VarRef: i
+        Literal (int): 0
+      WhileStmt (jabtak)
+        Condition:
+          BinaryExpr '<'
+            VarRef: i
+            BinaryExpr '-'
+              VarRef: n
+              Literal (int): 1
+        Body:
+          AssignStmt (medalo)
+            VarRef: swapped
+            Literal (int): 0
+          AssignStmt (medalo)
+            VarRef: j
+            Literal (int): 0
+          WhileStmt (jabtak)
+            Condition:
+              BinaryExpr '<'
+                VarRef: j
+                BinaryExpr '-'
+                  BinaryExpr '-'
+                    VarRef: n
+                    VarRef: i
+                  Literal (int): 1
+            Body:
+              IfStmt (agar)
+                Condition:
+                  BinaryExpr '>'
+                    VarRef: arr [indexed]
+                      VarRef: j
+                    VarRef: arr [indexed]
+                      BinaryExpr '+'
+                        VarRef: j
+                        Literal (int): 1
+                Then Branch:
+                  AssignStmt (medalo)
+                    VarRef: temp
+                    VarRef: arr [indexed]
+                      VarRef: j
+                  AssignStmt (medalo)
+                    VarRef: arr [indexed]
+                      VarRef: j
+                    VarRef: arr [indexed]
+                      BinaryExpr '+'
+                        VarRef: j
+                        Literal (int): 1
+                  AssignStmt (medalo)
+                    VarRef: arr [indexed]
+                      BinaryExpr '+'
+                        VarRef: j
+                        Literal (int): 1
+                    VarRef: temp
+                  AssignStmt (medalo)
+                    VarRef: swapped
+                    Literal (int): 1
+              AssignStmt (medalo)
+                VarRef: j
+                BinaryExpr '+'
+                  VarRef: j
+                  Literal (int): 1
+          IfStmt (agar)
+            Condition:
+              BinaryExpr '=='
+                VarRef: swapped
+                Literal (int): 0
+            Then Branch:
+              BreakStmt (nikal)
+          AssignStmt (medalo)
+            VarRef: i
+            BinaryExpr '+'
+              VarRef: i
+              Literal (int): 1
+  FuncDecl: int32 main()
+    Block (shro ... khatam) [16 statements]
+      VarDecl: int32 data[8]
+      VarDecl: int32 k
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 0
+        Literal (int): 64
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 1
+        Literal (int): 34
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 2
+        Literal (int): 25
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 3
+        Literal (int): 12
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 4
+        Literal (int): 22
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 5
+        Literal (int): 11
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 6
+        Literal (int): 90
+      AssignStmt (medalo)
+        VarRef: data [indexed]
+          Literal (int): 7
+        Literal (int): 45
+      IOStmt: dikhao
+        Literal (string): Original array initialized.
+      ExprStmt:
+        FuncCall: bubble_sort (2 args)
+          VarRef: data
+          Literal (int): 8
+      IOStmt: dikhao
+        Literal (string): Array sorted successfully.
+      AssignStmt (medalo)
+        VarRef: k
+        Literal (int): 0
+      WhileStmt (jabtak)
+        Condition:
+          BinaryExpr '<'
+            VarRef: k
+            Literal (int): 8
+        Body:
+          IOStmt: dikhao
+            VarRef: data [indexed]
+              VarRef: k
+          AssignStmt (medalo)
+            VarRef: k
+            BinaryExpr '+'
+              VarRef: k
+              Literal (int): 1
+      ReturnStmt (wapis)
+        Literal (int): 0
+

@@ -1,0 +1,100 @@
+ProgramAST (3 declarations)
+  FuncDecl: int32 factorial(int32 n)
+    Block (shro ... khatam) [3 statements]
+      VarDecl: int32 result
+      VarDecl: int32 counter
+      IfStmt (agar)
+        Condition:
+          BinaryExpr '<='
+            VarRef: n
+            Literal (int): 1
+        Then Branch:
+          ReturnStmt (wapis)
+            Literal (int): 1
+        Else Branch (magar):
+          AssignStmt (medalo)
+            VarRef: result
+            Literal (int): 1
+          AssignStmt (medalo)
+            VarRef: counter
+            VarRef: n
+          WhileStmt (jabtak)
+            Condition:
+              BinaryExpr '>'
+                VarRef: counter
+                Literal (int): 1
+            Body:
+              AssignStmt (medalo)
+                VarRef: result
+                BinaryExpr '*'
+                  VarRef: result
+                  VarRef: counter
+              AssignStmt (medalo)
+                VarRef: counter
+                BinaryExpr '-'
+                  VarRef: counter
+                  Literal (int): 1
+          ReturnStmt (wapis)
+            VarRef: result
+  FuncDecl: real calculate_series_sum(int32 terms)
+    Block (shro ... khatam) [7 statements]
+      VarDecl: int32 k
+      VarDecl: real sum
+      VarDecl: real term_val
+      AssignStmt (medalo)
+        VarRef: sum
+        Literal (float): 0.000000
+      AssignStmt (medalo)
+        VarRef: k
+        Literal (int): 1
+      WhileStmt (jabtak)
+        Condition:
+          BinaryExpr '<='
+            VarRef: k
+            VarRef: terms
+        Body:
+          AssignStmt (medalo)
+            VarRef: term_val
+            BinaryExpr '/'
+              Literal (float): 1.000000
+              FuncCall: factorial (1 args)
+                VarRef: k
+          AssignStmt (medalo)
+            VarRef: sum
+            BinaryExpr '+'
+              VarRef: sum
+              VarRef: term_val
+          AssignStmt (medalo)
+            VarRef: k
+            BinaryExpr '+'
+              VarRef: k
+              Literal (int): 1
+      ReturnStmt (wapis)
+        VarRef: sum
+  FuncDecl: int32 main()
+    Block (shro ... khatam) [11 statements]
+      VarDecl: int32 n
+      VarDecl: int32 fact
+      VarDecl: real approx_e
+      AssignStmt (medalo)
+        VarRef: n
+        Literal (int): 5
+      AssignStmt (medalo)
+        VarRef: fact
+        FuncCall: factorial (1 args)
+          VarRef: n
+      IOStmt: dikhao
+        Literal (string): Factorial of 5 is: 
+      IOStmt: dikhao
+        VarRef: fact
+      AssignStmt (medalo)
+        VarRef: approx_e
+        FuncCall: calculate_series_sum (1 args)
+          VarRef: n
+      IOStmt: dikhao
+        Literal (string): Approximation series sum: 
+      IOStmt: dikhao
+        VarRef: approx_e
+      ReturnStmt (wapis)
+        Literal (int): 0
+

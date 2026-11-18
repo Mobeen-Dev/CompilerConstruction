@@ -1,0 +1,27 @@
+int32 compute_sum(int32 arr[4], int32 len) shro
+    int32 s ;
+    int32 i ;
+    s medalo 0 ;
+    i medalo 0 ;
+
+    jabtak ( i < len ) shro
+        s medalo ( s + arr[i] ) ;
+        i medalo ( i + 1 ) ;
+    khatam
+
+    wapis s ;
+khatam
+
+int32 main() shro
+    int32 v[4] ;
+    int32 total ;
+
+    v[0] medalo 10 ;
+    v[1] medalo 20 ;
+    v[2] medalo 30 ;
+    v[3] medalo 40 ;
+
+    total medalo compute_sum(v, 4) ;
+    dikhao(total) ;
+    wapis 0 ;
+khatam

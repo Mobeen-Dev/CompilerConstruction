@@ -1,0 +1,5 @@
+int32 main() shro
+    int32 x ;
+    x medalo ; // Error: missing expression in assignment statement
+    wapis 0 ;
+khatam

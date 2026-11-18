@@ -1,0 +1,25 @@
+int32 main() shro
+    int32 a ;
+    int32 b ;
+    int32 c ;
+
+    a medalo 10 ;
+    b medalo 20 ;
+    c medalo 30 ;
+
+    agar ( ( a < b ) && ( b < c ) ) shro
+        dikhao("Both conditions met with &&") ;
+    magar
+        dikhao("Condition not met") ;
+    khatam
+
+    agar ( ( a > b ) || ( b < c ) ) shro
+        dikhao("At least one condition met with ||") ;
+    khatam
+
+    agar ( ! ( a = b ) ) shro
+        dikhao("Inequality verified with !") ;
+    khatam
+
+    wapis 0 ;
+khatam

@@ -1,0 +1,5 @@
+int32 main() shro
+    int32 $money ; // $ is illegal in identifier
+    $money medalo 100 ;
+    wapis 0 ;
+khatam
